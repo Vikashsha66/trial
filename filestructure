@@ -1,0 +1,5 @@
+exam-portal/
+│
+├── index.html        ← Login page
+├── exam.html         ← Exam page (after login)
+└── style.css         ← Shared styles

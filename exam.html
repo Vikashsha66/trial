@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Page</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="exam-container">
+        <h1>Welcome to the Computer Exam</h1>
+        <p id="userInfo"></p>
+
+        <div id="examSection">
+            <div class="question">
+                <h3>1. What does HTML stand for?</h3>
+                <input type="radio" name="q1" value="a"> Hyper Text Markup Language<br>
+                <input type="radio" name="q1" value="b"> Hyper Transfer Markup Language<br>
+                <input type="radio" name="q1" value="c"> High Text Machine Language<br>
+            </div>
+
+            <div class="question">
+                <h3>2. What does CSS stand for?</h3>
+                <input type="radio" name="q2" value="a"> Colorful Style Sheets<br>
+                <input type="radio" name="q2" value="b"> Cascading Style Sheets<br>
+                <input type="radio" name="q2" value="c"> Computer Style Sheets<br>
+            </div>
+
+            <button id="submitExam">Submit Exam</button>
+        </div>
+
+        <div id="resultSection" style="display:none;">
+            <h2>Exam Result</h2>
+            <p id="resultDetails"></p>
+            <button onclick="window.location.href='index.html'">Logout</button>
+        </div>
+    </div>
+
+    <script>
+        // Retrieve logged-in user info
+        const user = JSON.parse(localStorage.getItem('examUser'));
+
+        if (!user) {
+            window.location.href = 'index.html'; // redirect if not logged in
+        } else {
+            document.getElementById('userInfo').innerText =
+                `Name: ${user.name} | Position: ${user.position} | Team: ${user.team}`;
+        }
+
+        document.getElementById('submitExam').addEventListener('click', function() {
+            const answers = {
+                q1: document.querySelector('input[name="q1"]:checked')?.value,
+                q2: document.querySelector('input[name="q2"]:checked')?.value
+            };
+
+            let score = 0;
+            if (answers.q1 === 'a') score++;
+            if (answers.q2 === 'b') score++;
+
+            // Hide exam section and show result
+            document.getElementById('examSection').style.display = 'none';
+            document.getElementById('resultSection').style.display = 'block';
+
+            document.getElementById('resultDetails').innerHTML = `
+                <strong>Name:</strong> ${user.name}<br>
+                <strong>Position:</strong> ${user.position}<br>
+                <strong>Team:</strong> ${user.team}<br>
+                <strong>Score:</strong> ${score}/2
+            `;
+
+            // Clear stored user info after exam
+            localStorage.removeItem('examUser');
+        });
+    </script>
+</body>
+</html>

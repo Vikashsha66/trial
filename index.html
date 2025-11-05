@@ -1,0 +1,44 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Exam Portal Login</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="login-container">
+        <h1>Computer Exam Portal</h1>
+        <form id="loginForm">
+            <label for="name">Name:</label>
+            <input type="text" id="name" required>
+
+            <label for="position">Position:</label>
+            <input type="text" id="position" required>
+
+            <label for="team">Team Name:</label>
+            <input type="text" id="team" required>
+
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <script>
+        document.getElementById('loginForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+
+            const name = document.getElementById('name').value.trim();
+            const position = document.getElementById('position').value.trim();
+            const team = document.getElementById('team').value.trim();
+
+            if (name && position && team) {
+                // Store login info temporarily
+                localStorage.setItem('examUser', JSON.stringify({ name, position, team }));
+                window.location.href = 'exam.html';
+            } else {
+                alert('Please fill out all fields.');
+            }
+        });
+    </script>
+</body>
+</html>

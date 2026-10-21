@@ -1,0 +1,71 @@
+name: Security Scanning
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  schedule:
+    - cron: '0 0 * * 0' # Weekly on Sundays
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  sonar-cloud-analysis:
+    name: SonarQube Code Analysis
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # Shallow clones must be disabled for a better relevancy of analysis
+
+    - name: SonarQube Scan
+      uses: sonarsource/sonarqube-scan-action@v3
+      env:
+        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+        SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }} # Leave out if using SonarCloud
+
+  owasp-dependency-check:
+    name: OWASP Dependency Check
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Run OWASP Dependency-Check
+      uses: dependency-check/DependencyCheck-action@main
+      with:
+        project: 'My-Docker-App'
+        path: '.'
+        format: 'HTML'
+        out: 'reports'
+        args: '--failOnCVSS 7' # Fails build on High/Critical vulnerabilities (CVSS >= 7)
+
+    - name: Upload OWASP Report
+      uses: actions/upload-artifact@v4
+      with:
+        name: owasp-vulnerability-report
+        path: reports
+
+  trivy-container-scan:
+    name: Trivy Container Scan
+    runs-on: ubuntu-latest
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v4
+
+    - name: Build Local Image for Scan
+      run: docker build -t app:scan .
+
+    - name: Run Trivy Vulnerability Scanner
+      uses: aquasecurity/trivy-action@0.28.0 # Kept updated to stable action specs
+      with:
+        image-ref: 'app:scan'
+        format: 'table'
+        exit-code: '1' # Fails the pipeline if critical vulnerabilities are found
+        ignore-unfixed: true
+        vuln-type: 'os,library'
+        severity: 'CRITICAL,HIGH'

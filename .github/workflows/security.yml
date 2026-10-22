@@ -61,7 +61,7 @@ jobs:
       run: docker build -t app:scan .
 
     - name: Run Trivy Vulnerability Scanner
-      uses: aquasecurity/trivy-action@0.28.0 # Kept updated to stable action specs
+      uses: aquasecurity/trivy-action@master # Kept updated to stable action specs
       with:
         image-ref: 'app:scan'
         format: 'table'

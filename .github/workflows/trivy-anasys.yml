@@ -1,43 +1,39 @@
-name: Trivy Security Scan
+name: Build and Scan Image
 
 on:
   push:
-    branches: [ "main", "master" ]
+    branches:
+      - main
   pull_request:
-    branches: [ "main", "master" ]
-  schedule:
-    - cron: '0 0 * * 0' # Runs automatically every Sunday at midnight
+    branches:
+      - main
+  workflow_dispatch:
 
 permissions:
   contents: read
-  security-events: write # Required to upload findings to the GitHub Security tab
 
 jobs:
-  trivy-scan:
+  build-and-scan:
     name: Build and Scan Image
     runs-on: ubuntu-latest
 
     steps:
-      # Step 2.1: Pull down your source code into the runner environment
-      - name: Checkout Code
+      # Step 1: Get your source code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2.2: Build your Docker image locally using your repository's Dockerfile
-      - name: Build Local Image
-        run: docker build -t my-app:latest .
+      # Step 2: Build Docker image
+      - name: Build Docker image
+        run: |
+          docker build -t my-app:${{ github.sha }} .
 
-      # Step 2.3: Connect and run Trivy against the built image
-      - name: Run Trivy Scanner
-        uses: aquasecurity/trivy-action@v1
+      # Step 3: Scan Docker image with Trivy
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@v0.36.0
         with:
-          image-ref: 'my-app:latest'
-          format: 'sarif'          # Formats results so GitHub can read them
-          output: 'trivy-results.sarif'
-          severity: 'CRITICAL,HIGH'
-
-      # Step 2.4: Upload the report directly into your GitHub Security Dashboard
-      - name: Upload Results to GitHub Security
-        uses: github/codeql-action/upload-sarif@v3
-        if: always() # Ensures the upload happens even if vulnerabilities are found
-        with:
-          sarif_file: 'trivy-results.sarif'
+          image-ref: my-app:${{ github.sha }}
+          format: table
+          exit-code: '1'
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: HIGH,CRITICAL

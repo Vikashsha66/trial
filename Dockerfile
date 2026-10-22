@@ -1,13 +1,13 @@
-FROM node:22-alpine
+FROM nginx:alpine
 
-WORKDIR /app
+# Remove the default Nginx web page
+RUN rm -rf /usr/share/nginx/html/*
 
-COPY package*.json ./
+# Copy your website files into Nginx
+COPY . /usr/share/nginx/html/
 
-RUN npm ci
+# Expose the Nginx port
+EXPOSE 80
 
-COPY . .
-
-EXPOSE 3000
-
-CMD ["npm", "start"]
+# Start Nginx
+CMD ["nginx", "-g", "daemon off;"]

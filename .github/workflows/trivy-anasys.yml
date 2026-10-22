@@ -1,0 +1,43 @@
+name: Trivy Security Scan
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+  schedule:
+    - cron: '0 0 * * 0' # Runs automatically every Sunday at midnight
+
+permissions:
+  contents: read
+  security-events: write # Required to upload findings to the GitHub Security tab
+
+jobs:
+  trivy-scan:
+    name: Build and Scan Image
+    runs-on: ubuntu-latest
+
+    steps:
+      # Step 2.1: Pull down your source code into the runner environment
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      # Step 2.2: Build your Docker image locally using your repository's Dockerfile
+      - name: Build Local Image
+        run: docker build -t my-app:latest .
+
+      # Step 2.3: Connect and run Trivy against the built image
+      - name: Run Trivy Scanner
+        uses: aquasecurity/trivy-action@v1
+        with:
+          image-ref: 'my-app:latest'
+          format: 'sarif'          # Formats results so GitHub can read them
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+
+      # Step 2.4: Upload the report directly into your GitHub Security Dashboard
+      - name: Upload Results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        if: always() # Ensures the upload happens even if vulnerabilities are found
+        with:
+          sarif_file: 'trivy-results.sarif'
